@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Device - Airtel Inventory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f7fb; }
+        
+        .top-nav {
+            background: #e60000;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h2 { color: white; font-size: 1.5rem; }
+        .logo p { color: rgba(255,255,255,0.85); font-size: 0.7rem; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 25px; color: white; }
+        .logout-btn { color: white; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 25px; text-decoration: none; }
+        
+        .main-content { padding: 25px 35px; }
+        .page-header { margin-bottom: 25px; }
+        .page-header h2 { font-size: 1.6rem; color: #1a1a1a; }
+        .page-header p { color: #888; }
+        
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 650px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            margin-top: 20px;
+        }
+        .form-group { margin-bottom: 20px; }
+        label { display: inline-block; width: 130px; font-weight: 500; color: #333; }
+        input, select { padding: 10px 12px; width: 280px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif; }
+        input:focus, select:focus { outline: none; border-color: #e60000; }
+        
+        .btn-update { background: #e60000; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; margin-left: 130px; }
+        .btn-update:hover { background: #cc0000; }
+        .btn-cancel { margin-left: 15px; color: #888; text-decoration: none; }
+        .btn-cancel:hover { color: #e60000; }
+        .btn-back { background: #666; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block; margin-bottom: 20px; }
+        .btn-back:hover { background: #555; }
+        
+        .footer { background: #1a1a1a; color: white; padding: 20px; margin-top: 40px; text-align: center; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="logo"><h2>AIRTEL</h2><p>Inventory Management System</p></div>
+        <div class="user-info">
+            <span>👋 <span th:text="${#authentication.name}">User</span></span>
+            <a href="/logout" class="logout-btn">🚪 Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Edit Device</h2>
+            <p>Update device information.</p>
+        </div>
+        
+        <a href="/devices" class="btn-back">← Back to Devices</a>
+        
+        <div class="form-container">
+            <form method="post" th:action="@{/devices/update/{id}(id=${device.id})}" th:object="${device}">
+                <div class="form-group">
+                    <label>Asset Tag:</label>
+                    <input type="text" th:field="*{assetTag}" required/>
+                </div>
+                <div class="form-group">
+                    <label>Serial Number:</label>
+                    <input type="text" th:field="*{serialNumber}" required/>
+                </div>
+                <div class="form-group">
+                    <label>Device Type:</label>
+                    <select th:field="*{deviceType.id}">
+                        <option th:each="type : ${deviceTypes}" th:value="${type.id}" th:text="${type.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Brand:</label>
+                    <input type="text" th:field="*{brand}"/>
+                </div>
+                <div class="form-group">
+                    <label>Model:</label>
+                    <input type="text" th:field="*{model}"/>
+                </div>
+                <div class="form-group">
+                    <label>Condition:</label>
+                    <select th:field="*{deviceCondition}">
+                        <option value="New">New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select th:field="*{status.id}">
+                        <option th:each="status : ${deviceStatuses}" th:value="${status.id}" th:text="${status.status}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Purchase Date:</label>
+                    <input type="date" th:field="*{purchaseDate}"/>
+                </div>
+                <div class="form-group">
+                    <label>Warranty Expiry:</label>
+                    <input type="date" th:field="*{warrantyExpiry}"/>
+                </div>
+                <div>
+                    <button type="submit" class="btn-update">Update Device</button>
+                    <a href="/devices" class="btn-cancel">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p>&copy; 2026 Airtel Rwanda. All Rights Reserved. | End User Equipment Tracking System</p>
+    </footer>
+</body>
+</html>

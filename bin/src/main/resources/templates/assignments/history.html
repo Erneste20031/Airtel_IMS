@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Assignment History - Airtel Inventory</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background-color: #f5f5f5; }
+        .header { background-color: #e60000; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #e60000; color: white; }
+        .btn { padding: 5px 10px; text-decoration: none; border-radius: 3px; margin: 2px; display: inline-block; }
+        .btn-assign { background-color: green; color: white; padding: 10px 15px; display: inline-block; margin-bottom: 20px; margin-right: 10px; }
+        .btn-return { background-color: orange; color: white; padding: 10px 15px; display: inline-block; margin-bottom: 20px; }
+        .btn-back { background-color: gray; color: white; padding: 10px 15px; display: inline-block; margin-bottom: 20px; margin-right: 10px; }
+        .status-assigned { color: green; font-weight: bold; }
+        .status-returned { color: gray; }
+    </style>
+</head>
+<body>
+    <div class="header"><h1>Assignment History</h1></div>
+    <a href="/" class="btn-back">Dashboard</a>
+    <a href="/assignments/assign" class="btn-assign">+ Assign New Device</a>
+    <a href="/assignments/return" class="btn-return">↩ Return Device</a>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Device</th><th>Asset Tag</th><th>Assigned To</th>
+                <th>Assigned Date</th><th>Returned Date</th><th>Condition When Assigned</th>
+                <th>Condition When Returned</th><th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="history : ${assignments}">
+                <td th:text="${history.id}">1</td>
+                <td th:text="${history.device.brand} + ' ' + ${history.device.model}">Dell Latitude</td>
+                <td th:text="${history.device.assetTag}">AST-001</td>
+                <td th:text="${history.employee.name}">John Doe</td>
+                <td th:text="${history.assignedDate}">2024-01-01</td>
+                <td th:class="${history.returnedDate != null} ? 'status-returned' : 'status-assigned'">
+                    <span th:if="${history.returnedDate == null}">Currently Assigned</span>
+                    <span th:if="${history.returnedDate != null}" th:text="${history.returnedDate}"></span>
+                </td>
+                <td th:text="${history.conditionWhenAssigned}">Good</td>
+                <td th:text="${history.conditionWhenReturned}">-</td>
+                <td th:text="${history.notes}">-</td>
+            数
+        </tbody>
+    </table>
+</body>
+</html>

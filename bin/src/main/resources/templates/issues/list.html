@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Issue Reports - Airtel Inventory</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background-color: #f5f5f5; }
+        .header { background-color: #e60000; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #e60000; color: white; }
+        .btn { padding: 5px 10px; text-decoration: none; border-radius: 3px; margin: 2px; display: inline-block; }
+        .btn-report { background-color: green; color: white; padding: 10px 15px; display: inline-block; margin-bottom: 20px; }
+        .btn-back { background-color: gray; color: white; padding: 10px 15px; display: inline-block; margin-bottom: 20px; margin-right: 10px; }
+        .btn-update { background-color: blue; color: white; }
+        .status-reported { color: orange; font-weight: bold; }
+        .status-progress { color: blue; font-weight: bold; }
+        .status-resolved { color: green; font-weight: bold; }
+        .priority-critical { color: red; font-weight: bold; }
+        .priority-high { color: orange; font-weight: bold; }
+        .priority-medium { color: blue; }
+        .priority-low { color: green; }
+    </style>
+</head>
+<body>
+    <div class="header"><h1>Issue Reports</h1></div>
+    <a href="/" class="btn-back">Dashboard</a>
+    <a href="/issues/report" class="btn-report">+ Report New Issue</a>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Device</th><th>Reported By</th><th>Issue Date</th>
+                <th>Issue Type</th><th>Priority</th><th>Status</th>
+                <th>Description</th><th>Resolution</th><th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="issue : ${issues}">
+                <td th:text="${issue.id}">1</td>
+                <td th:text="${issue.device.brand} + ' ' + ${issue.device.model} + ' (' + ${issue.device.assetTag} + ')'">Dell Latitude</td>
+                <td th:text="${issue.employee.name}">John Doe</td>
+                <td th:text="${issue.issueDate}">2024-01-01</td>
+                <td th:text="${issue.issueType}">Hardware</td>
+                <td th:class="${issue.priority == 'Critical' ? 'priority-critical' : issue.priority == 'High' ? 'priority-high' : issue.priority == 'Medium' ? 'priority-medium' : 'priority-low'}" 
+                    th:text="${issue.priority}">High</td>
+                <td th:class="${issue.status == 'Reported' ? 'status-reported' : issue.status == 'In Progress' ? 'status-progress' : 'status-resolved'}" 
+                    th:text="${issue.status}">Reported</td>
+                <td th:text="${issue.issueDescription}">Screen broken</td>
+                <td th:text="${issue.resolutionNotes}">-</td>
+                <td>
+                    <a th:href="@{/issues/update/{id}(id=${issue.id})}" class="btn btn-update">Update Status</a>
+                </td>
+            数
+            <tr th:if="${issues.empty}">
+                <td colspan="10" style="text-align: center;">No issues reported.</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

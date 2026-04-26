@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Airtel Inventory System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fb;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .top-nav {
+            background: #e60000;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo h2 { color: white; font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+        .logo p { color: rgba(255,255,255,0.85); font-size: 0.7rem; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 25px; font-size: 0.85rem; color: white; }
+        .logout-btn { color: white; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 25px; text-decoration: none; font-size: 0.8rem; transition: all 0.3s; display: inline-block; }
+        .logout-btn:hover { background: rgba(0,0,0,0.5); }
+        
+        .alert { padding: 12px 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #dcfce7; color: #16a34a; border-left: 4px solid #16a34a; }
+        .alert-error { background: #fee2e2; color: #dc2626; border-left: 4px solid #dc2626; }
+        
+        .container { display: flex; flex: 1; }
+        
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+            box-shadow: 3px 0 20px rgba(0,0,0,0.05);
+            padding: 25px 0;
+            position: sticky;
+            top: 70px;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            border-right: 1px solid #e8e8e8;
+        }
+        .sidebar-header { padding: 0 20px 20px 20px; margin-bottom: 20px; border-bottom: 1px solid #e8e8e8; }
+        .sidebar-header h3 { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 1.5px; }
+        .sidebar-menu { list-style: none; padding: 0 12px; }
+        .sidebar-item { margin: 8px 0; border-radius: 12px; transition: all 0.3s ease; }
+        .sidebar-item a { text-decoration: none; color: #4a4a4a; display: flex; align-items: center; gap: 14px; padding: 12px 18px; font-size: 0.9rem; font-weight: 500; border-radius: 12px; }
+        .sidebar-item .icon { font-size: 1.25rem; min-width: 28px; }
+        .sidebar-item:hover { background: #f0f0f0; }
+        .sidebar-item:hover a { color: #e60000; }
+        .sidebar-item.active { background: #e60000; }
+        .sidebar-item.active a { color: white; }
+        .menu-section { margin-top: 20px; }
+        .menu-section-title { padding: 8px 18px; font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .main-content { flex: 1; padding: 25px 35px; }
+        
+        .page-header { margin-bottom: 25px; }
+        .page-header h2 { font-size: 1.6rem; font-weight: 600; color: #1a1a1a; margin-bottom: 5px; }
+        .page-header p { font-size: 0.85rem; color: #888; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-bottom: 40px; }
+        .stat-card { background: white; padding: 22px 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.04); transition: all 0.3s; border: 1px solid #f0f0f0; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: #e60000; }
+        .stat-info h3 { font-size: 0.7rem; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-info .number { font-size: 2rem; font-weight: 700; color: #1a1a1a; }
+        .stat-icon { font-size: 2.4rem; opacity: 0.6; }
+        
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .table-header h3 { font-size: 1.1rem; font-weight: 600; color: #1a1a1a; }
+        .btn-add { background: #1a1a1a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.85rem; transition: all 0.3s; display: inline-block; border: none; cursor: pointer; }
+        .btn-add:hover { background: #e60000; }
+        .btn-back { background: #666; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-size: 0.85rem; display: inline-block; margin-bottom: 20px; }
+        .btn-back:hover { background: #555; }
+        .btn-export { background: #2e7d32; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.85rem; transition: all 0.3s; display: inline-block; border: none; cursor: pointer; }
+        .btn-export:hover { background: #1b5e20; transform: translateY(-2px); }
+        
+        .table-container { background: white; border-radius: 12px; overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f8f9fa; color: #4a4a4a; font-weight: 600; padding: 14px 12px; text-align: left; border-bottom: 2px solid #e60000; font-size: 0.85rem; }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 0.85rem; }
+        tr:hover { background: #fafafa; }
+        
+        .filter-bar { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .filter-form { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 150px; }
+        .filter-group label { display: block; font-size: 0.75rem; color: #666; margin-bottom: 5px; }
+        .filter-group input, .filter-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; }
+        .btn-filter { background: #e60000; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-clear { background: #666; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; }
+        
+        .form-container { background: white; border-radius: 16px; padding: 25px; max-width: 650px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; }
+        .form-group { margin-bottom: 18px; }
+        label { display: inline-block; width: 140px; font-weight: 500; color: #4a4a4a; font-size: 0.85rem; }
+        input, select, textarea { padding: 10px 12px; width: 280px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; }
+        .btn-save { background: #1a1a1a; color: white; padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.85rem; transition: all 0.3s; }
+        .btn-save:hover { background: #e60000; }
+        .btn-cancel { margin-left: 10px; color: #888; text-decoration: none; font-size: 0.85rem; }
+        .btn-cancel:hover { color: #e60000; }
+        
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 500; }
+        .status-available { background: #e8f5e9; color: #2e7d32; }
+        .status-assigned { background: #e3f2fd; color: #1565c0; }
+        .status-repair { background: #fff3e0; color: #e65100; }
+        .status-retired { background: #f5f5f5; color: #616161; }
+        .status-lost { background: #ffebee; color: #c62828; }
+        
+        .priority-critical { background: #ffebee; color: #c62828; font-weight: 600; }
+        .priority-high { background: #fff3e0; color: #e65100; }
+        .priority-medium { background: #e3f2fd; color: #1565c0; }
+        .priority-low { background: #e8f5e9; color: #2e7d32; }
+        
+        .action-edit { color: #1565c0; text-decoration: none; margin-right: 12px; font-size: 0.8rem; }
+        .action-delete { color: #c62828; text-decoration: none; font-size: 0.8rem; }
+        .action-edit:hover, .action-delete:hover { text-decoration: underline; }
+        
+        .footer { background: #1a1a1a; color: white; padding: 30px 30px 20px; margin-top: 40px; }
+        .footer-content { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .footer-section h3 { font-size: 1rem; margin-bottom: 15px; color: #e60000; font-weight: 600; }
+        .footer-section p, .footer-section ul { font-size: 0.75rem; color: #bbb; line-height: 1.6; }
+        .footer-section ul { list-style: none; }
+        .footer-section ul li { margin-bottom: 8px; }
+        .footer-section ul li a { color: #bbb; text-decoration: none; transition: color 0.3s; }
+        .footer-section ul li a:hover { color: #e60000; }
+        .footer-bottom { text-align: center; padding-top: 20px; margin-top: 20px; border-top: 1px solid #333; font-size: 0.65rem; color: #777; }
+        
+        /* Developer Card */
+        .developer-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .developer-card-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .developer-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .developer-title span {
+            font-size: 2rem;
+        }
+        .developer-title h3 {
+            color: #e60000;
+        }
+        .developer-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .developer-info p:first-child {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        .developer-info p:last-child {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .welcome-card {
+            text-align: right;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 25px;
+            border-radius: 12px;
+        }
+        .welcome-card p:first-child {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        .welcome-card p:nth-child(2) {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .welcome-card p:last-child {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .main-content { padding: 15px; }
+            label { display: block; width: auto; margin-bottom: 5px; }
+            input, select { width: 100%; }
+            .developer-card-inner { flex-direction: column; text-align: center; }
+            .welcome-card { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="logo"><h2>AIRTEL</h2><p>Inventory Management System</p></div>
+        <div class="user-info"><span>👋 <span th:text="${#authentication.name}">Administrator</span></span><a href="/logout" class="logout-btn">🚪 Logout</a></div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header"><h3>MAIN MENU</h3></div>
+            <ul class="sidebar-menu"><li class="sidebar-item" th:classappend="${activePage == 'dashboard'} ? 'active' : ''"><a href="/dashboard"><span class="icon">🏠</span><span>Dashboard</span></a></li></ul>
+            <div class="menu-section"><div class="menu-section-title">DEVICE MANAGEMENT</div><ul class="sidebar-menu"><li class="sidebar-item" th:classappend="${activePage == 'devices'} ? 'active' : ''"><a href="/devices"><span class="icon">💻</span><span>All Devices</span></a></li></ul></div>
+            <div class="menu-section"><div class="menu-section-title">PEOPLE MANAGEMENT</div><ul class="sidebar-menu"><li class="sidebar-item" th:classappend="${activePage == 'employees'} ? 'active' : ''"><a href="/employees"><span class="icon">👥</span><span>All Employees</span></a></li><li class="sidebar-item" th:classappend="${activePage == 'departments'} ? 'active' : ''"><a href="/departments"><span class="icon">🏢</span><span>Departments</span></a></li></ul></div>
+            <div class="menu-section"><div class="menu-section-title">ASSIGNMENT</div><ul class="sidebar-menu"><li class="sidebar-item" th:classappend="${activePage == 'assign'} ? 'active' : ''"><a href="/assignments/assign"><span class="icon">📤</span><span>Assign Device</span></a></li><li class="sidebar-item" th:classappend="${activePage == 'return'} ? 'active' : ''"><a href="/assignments/return"><span class="icon">📥</span><span>Return Device</span></a></li><li class="sidebar-item" th:classappend="${activePage == 'history'} ? 'active' : ''"><a href="/assignments/history"><span class="icon">📜</span><span>History</span></a></li></ul></div>
+            <div class="menu-section"><div class="menu-section-title">ISSUE MANAGEMENT</div><ul class="sidebar-menu"><li class="sidebar-item" th:classappend="${activePage == 'issues'} ? 'active' : ''"><a href="/issues"><span class="icon">⚠️</span><span>All Issues</span></a></li></ul></div>
+            <div class="menu-section"><div class="menu-section-title">REPORTS</div><ul class="sidebar-menu"><li class="sidebar-item" th:classappend="${activePage == 'reports'} ? 'active' : ''"><a href="/reports"><span class="icon">📊</span><span>Reports & Analytics</span></a></li></ul></div>
+        </div>
+
+        <div class="main-content">
+            <div th:if="${successMessage}" class="alert alert-success">✅ <span th:text="${successMessage}"></span></div>
+            <div th:if="${errorMessage}" class="alert alert-error">❌ <span th:text="${errorMessage}"></span></div>
+            
+            <!-- DASHBOARD WITH DEVELOPER NAMES -->
+            <div th:if="${activePage == 'dashboard'}">
+                <div class="page-header">
+                    <h2>Dashboard Overview</h2>
+                    <p>Welcome to Airtel End User Equipment Tracking System.</p>
+                </div>
+                
+                <!-- Developer Information Card -->
+                <div class="developer-card">
+                    <div class="developer-card-inner">
+                        <div>
+                            <div class="developer-title">
+                                <span>👨‍💻</span>
+                                <h3>System Developers</h3>
+                            </div>
+                            <div class="developer-info">
+                                <div>
+                                    <p>Registration Number 1</p>
+                                    <p>24RP06040</p>
+                                </div>
+                                <div>
+                                    <p>Registration Number 2</p>
+                                    <p>24RP06906</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="welcome-card">
+                            <p>Welcome back,</p>
+                            <p><span th:text="${#authentication.name}"></span>!</p>
+                            <p>Airtel Rwanda Inventory System</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-info"><h3>Total Devices</h3><div class="number" th:text="${totalDevices != null ? totalDevices : 0}">0</div></div><div class="stat-icon">💻</div></div>
+                    <div class="stat-card"><div class="stat-info"><h3>Total Employees</h3><div class="number" th:text="${totalEmployees != null ? totalEmployees : 0}">0</div></div><div class="stat-icon">👥</div></div>
+                    <div class="stat-card"><div class="stat-info"><h3>Assigned Devices</h3><div class="number" th:text="${assignedDevices != null ? assignedDevices : 0}">0</div></div><div class="stat-icon">📌</div></div>
+                    <div class="stat-card"><div class="stat-info"><h3>Open Issues</h3><div class="number" th:text="${openIssues != null ? openIssues : 0}">0</div></div><div class="stat-icon">⚠️</div></div>
+                </div>
+            </div>
+
+            <!-- DEVICE LIST -->
+            <div th:if="${activePage == 'devices'}">
+                <div class="page-header"><h2>Device Management</h2><p>View, edit, and manage all devices in inventory.</p></div>
+                <div class="filter-bar"><form method="get" action="/devices" class="filter-form"><div class="filter-group"><label>🔍 Search</label><input type="text" name="search" th:value="${searchValue}" placeholder="Search..."></div><div style="display: flex; gap: 10px;"><button type="submit" class="btn-filter">Apply Filters</button><a href="/devices" class="btn-clear">Clear All</a></div></form></div>
+                <div class="table-header"><h3>All Devices (<span th:text="${#lists.size(devices)}">0</span> devices found)</h3><a href="/devices/add" class="btn-add">+ Add New Device</a></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>ID</th><th>Asset Tag</th><th>Serial Number</th><th>Brand</th><th>Model</th><th>Type</th><th>Condition</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            <tr th:each="device : ${devices}">
+                                <td th:text="${device.id}">1</td>
+                                <td th:text="${device.assetTag}">AST-001</td>
+                                <td th:text="${device.serialNumber}">SN123</td>
+                                <td th:text="${device.brand}">Dell</td>
+                                <td th:text="${device.model}">Latitude</td>
+                                <td th:text="${device.deviceType.name}">Laptop</td>
+                                <td><span class="status-badge" th:text="${device.deviceCondition}">Good</span></td>
+                                <td><span class="status-badge" th:text="${device.status.status}">Available</span></td>
+                                <td><a th:href="@{/devices/edit/{id}(id=${device.id})}" class="action-edit">Edit</a><a th:href="@{/devices/delete/{id}(id=${device.id})}" class="action-delete" onclick="return confirm('Delete?')">Delete</a></td>
+                            </tr>
+                            <tr th:if="${devices.empty}"><td colspan="9" style="text-align:center;padding:40px;">No devices found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ADD DEVICE -->
+            <div th:if="${activePage == 'add-device'}">
+                <div class="page-header"><h2>Add New Device</h2><p>Register new equipment.</p></div>
+                <a href="/devices" class="btn-back">← Back</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/devices/save}" th:object="${device}">
+                        <div class="form-group"><label>Asset Tag:</label><input type="text" th:field="*{assetTag}" required/></div>
+                        <div class="form-group"><label>Serial Number:</label><input type="text" th:field="*{serialNumber}" required/></div>
+                        <div class="form-group"><label>Device Type:</label><select th:field="*{deviceType.id}"><option th:each="type : ${deviceTypes}" th:value="${type.id}" th:text="${type.name}"></option></select></div>
+                        <div class="form-group"><label>Brand:</label><input type="text" th:field="*{brand}"/></div>
+                        <div class="form-group"><label>Model:</label><input type="text" th:field="*{model}"/></div>
+                        <div class="form-group"><label>Condition:</label><select th:field="*{deviceCondition}"><option value="New">New</option><option value="Good">Good</option><option value="Fair">Fair</option><option value="Poor">Poor</option></select></div>
+                        <div class="form-group"><label>Status:</label><select th:field="*{status.id}"><option th:each="status : ${deviceStatuses}" th:value="${status.id}" th:text="${status.status}"></option></select></div>
+                        <div><button type="submit" class="btn-save">Save</button><a href="/devices" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- EDIT DEVICE -->
+            <div th:if="${activePage == 'edit-device'}">
+                <div class="page-header"><h2>Edit Device</h2><p>Update device information.</p></div>
+                <a href="/devices" class="btn-back">← Back</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/devices/update/{id}(id=${device.id})}" th:object="${device}">
+                        <div class="form-group"><label>Asset Tag:</label><input type="text" th:field="*{assetTag}" required/></div>
+                        <div class="form-group"><label>Serial Number:</label><input type="text" th:field="*{serialNumber}" required/></div>
+                        <div class="form-group"><label>Device Type:</label><select th:field="*{deviceType.id}"><option th:each="type : ${deviceTypes}" th:value="${type.id}" th:text="${type.name}"></option></select></div>
+                        <div class="form-group"><label>Brand:</label><input type="text" th:field="*{brand}"/></div>
+                        <div class="form-group"><label>Model:</label><input type="text" th:field="*{model}"/></div>
+                        <div class="form-group"><label>Condition:</label><select th:field="*{deviceCondition}"><option value="New">New</option><option value="Good">Good</option><option value="Fair">Fair</option><option value="Poor">Poor</option></select></div>
+                        <div class="form-group"><label>Status:</label><select th:field="*{status.id}"><option th:each="status : ${deviceStatuses}" th:value="${status.id}" th:text="${status.status}"></option></select></div>
+                        <div><button type="submit" class="btn-save">Update</button><a href="/devices" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- EMPLOYEE LIST -->
+            <div th:if="${activePage == 'employees'}">
+                <div class="page-header"><h2>Employee Management</h2><p>View, edit, and manage all employees.</p></div>
+                <div class="filter-bar"><form method="get" action="/employees" class="filter-form"><div class="filter-group"><label>🔍 Search</label><input type="text" name="search" th:value="${searchValue}" placeholder="Search..."></div><div style="display: flex; gap: 10px;"><button type="submit" class="btn-filter">Apply Filters</button><a href="/employees" class="btn-clear">Clear All</a></div></form></div>
+                <div class="table-header"><h3>All Employees (<span th:text="${#lists.size(employees)}">0</span> found)</h3><a href="/employees/add" class="btn-add">+ Add New Employee</a></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>ID</th><th>Employee ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Position</th><th>Department</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            <tr th:each="emp : ${employees}">
+                                <td th:text="${emp.id}">1</td>
+                                <td th:text="${emp.employeeId}">EMP001</td>
+                                <td th:text="${emp.name}">John Doe</td>
+                                <td th:text="${emp.email}">john@airtel.com</td>
+                                <td th:text="${emp.phone}">0788000001</td>
+                                <td th:text="${emp.position}">Manager</td>
+                                <td th:text="${emp.department != null ? emp.department.name : '-'}">IT</td>
+                                <td><a th:href="@{/employees/edit/{id}(id=${emp.id})}" class="action-edit">Edit</a><a th:href="@{/employees/delete/{id}(id=${emp.id})}" class="action-delete" onclick="return confirm('Delete?')">Delete</a></td>
+                            </tr>
+                            <tr th:if="${employees.empty}"><td colspan="8" style="text-align:center;padding:40px;">No employees found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ADD EMPLOYEE -->
+            <div th:if="${activePage == 'add-employee'}">
+                <div class="page-header"><h2>Add New Employee</h2><p>Register new staff member.</p></div>
+                <a href="/employees" class="btn-back">← Back</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/employees/save}" th:object="${employee}">
+                        <div class="form-group"><label>Employee ID:</label><input type="text" th:field="*{employeeId}" required/></div>
+                        <div class="form-group"><label>Full Name:</label><input type="text" th:field="*{name}" required/></div>
+                        <div class="form-group"><label>Email:</label><input type="email" th:field="*{email}"/></div>
+                        <div class="form-group"><label>Phone:</label><input type="text" th:field="*{phone}"/></div>
+                        <div class="form-group"><label>Position:</label><input type="text" th:field="*{position}"/></div>
+                        <div class="form-group"><label>Department:</label><select th:field="*{department.id}"><option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option></select></div>
+                        <div><button type="submit" class="btn-save">Save</button><a href="/employees" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- EDIT EMPLOYEE -->
+            <div th:if="${activePage == 'edit-employee'}">
+                <div class="page-header"><h2>Edit Employee</h2><p>Update employee information.</p></div>
+                <a href="/employees" class="btn-back">← Back</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/employees/update/{id}(id=${employee.id})}" th:object="${employee}">
+                        <div class="form-group"><label>Employee ID:</label><input type="text" th:field="*{employeeId}" required/></div>
+                        <div class="form-group"><label>Full Name:</label><input type="text" th:field="*{name}" required/></div>
+                        <div class="form-group"><label>Email:</label><input type="email" th:field="*{email}"/></div>
+                        <div class="form-group"><label>Phone:</label><input type="text" th:field="*{phone}"/></div>
+                        <div class="form-group"><label>Position:</label><input type="text" th:field="*{position}"/></div>
+                        <div class="form-group"><label>Department:</label><select th:field="*{department.id}"><option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option></select></div>
+                        <div><button type="submit" class="btn-save">Update</button><a href="/employees" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- DEPARTMENT LIST -->
+            <div th:if="${activePage == 'departments'}">
+                <div class="page-header"><h2>Department Management</h2><p>View, edit, and manage all departments.</p></div>
+                <div class="filter-bar"><form method="get" action="/departments" class="filter-form"><div class="filter-group"><label>🔍 Search</label><input type="text" name="search" th:value="${searchValue}" placeholder="Search..."></div><div style="display: flex; gap: 10px;"><button type="submit" class="btn-filter">Apply Filters</button><a href="/departments" class="btn-clear">Clear All</a></div></form></div>
+                <div class="table-header"><h3>All Departments (<span th:text="${#lists.size(departments)}">0</span> found)</h3><a href="/departments/add" class="btn-add">+ Add New Department</a></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>ID</th><th>Name</th><th>Location</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            <tr th:each="dept : ${departments}">
+                                <td th:text="${dept.id}">1</td>
+                                <td th:text="${dept.name}">IT</td>
+                                <td th:text="${dept.location}">Office</td>
+                                <td th:text="${dept.phone}">-</td>
+                                <td th:text="${dept.email}">-</td>
+                                <td><a th:href="@{/departments/edit/{id}(id=${dept.id})}" class="action-edit">Edit</a><a th:href="@{/departments/delete/{id}(id=${dept.id})}" class="action-delete" onclick="return confirm('Delete?')">Delete</a></td>
+                            </tr>
+                            <tr th:if="${departments.empty}"><td colspan="6" style="text-align:center;padding:40px;">No departments found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ADD DEPARTMENT -->
+            <div th:if="${activePage == 'add-department'}">
+                <div class="page-header"><h2>Add New Department</h2><p>Register new department.</p></div>
+                <a href="/departments" class="btn-back">← Back</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/departments/save}" th:object="${department}">
+                        <div class="form-group"><label>Department Name:</label><input type="text" th:field="*{name}" required/></div>
+                        <div class="form-group"><label>Location:</label><input type="text" th:field="*{location}"/></div>
+                        <div class="form-group"><label>Phone:</label><input type="text" th:field="*{phone}"/></div>
+                        <div class="form-group"><label>Email:</label><input type="email" th:field="*{email}"/></div>
+                        <div><button type="submit" class="btn-save">Save</button><a href="/departments" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- EDIT DEPARTMENT -->
+            <div th:if="${activePage == 'edit-department'}">
+                <div class="page-header"><h2>Edit Department</h2><p>Update department information.</p></div>
+                <a href="/departments" class="btn-back">← Back</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/departments/update/{id}(id=${department.id})}" th:object="${department}">
+                        <div class="form-group"><label>Department Name:</label><input type="text" th:field="*{name}" required/></div>
+                        <div class="form-group"><label>Location:</label><input type="text" th:field="*{location}"/></div>
+                        <div class="form-group"><label>Phone:</label><input type="text" th:field="*{phone}"/></div>
+                        <div class="form-group"><label>Email:</label><input type="email" th:field="*{email}"/></div>
+                        <div><button type="submit" class="btn-save">Update</button><a href="/departments" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ASSIGN DEVICE -->
+            <div th:if="${activePage == 'assign'}">
+                <div class="page-header"><h2>Assign Device</h2><p>Assign equipment to an employee.</p></div>
+                <a href="/assignments/history" class="btn-back">← Back to History</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/assignments/assign-device}">
+                        <div class="form-group"><label>Device:</label><select name="deviceId" required><option value="">-- Select Device --</option><option th:each="device : ${devices}" th:value="${device.id}" th:text="${device.assetTag} + ' - ' + ${device.brand} + ' ' + ${device.model}"></option></select></div>
+                        <div class="form-group"><label>Employee:</label><select name="employeeId" required><option value="">-- Select Employee --</option><option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.employeeId} + ' - ' + ${emp.name}"></option></select></div>
+                        <div class="form-group"><label>Condition:</label><select name="conditionWhenAssigned"><option value="New">New</option><option value="Good">Good</option><option value="Fair">Fair</option><option value="Poor">Poor</option></select></div>
+                        <div class="form-group"><label>Notes:</label><textarea name="notes" rows="3" style="width:280px;height:80px;"></textarea></div>
+                        <div><button type="submit" class="btn-save">📤 Assign Device</button><a href="/assignments/history" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RETURN DEVICE -->
+            <div th:if="${activePage == 'return'}">
+                <div class="page-header"><h2>Return Device</h2><p>Return equipment from employee.</p></div>
+                <a href="/assignments/history" class="btn-back">← Back to History</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/assignments/return-device}">
+                        <div class="form-group"><label>Device:</label><select name="deviceId" required><option value="">-- Select Device --</option><option th:each="device : ${devices}" th:value="${device.id}" th:text="${device.assetTag} + ' - ' + ${device.brand} + ' ' + ${device.model}"></option></select></div>
+                        <div class="form-group"><label>Return Condition:</label><select name="conditionWhenReturned"><option value="New">New</option><option value="Good">Good</option><option value="Fair">Fair</option><option value="Poor">Poor</option><option value="Damaged">Damaged</option></select></div>
+                        <div class="form-group"><label>Return Notes:</label><textarea name="returnNotes" rows="3" style="width:280px;height:80px;"></textarea></div>
+                        <div><button type="submit" class="btn-save">📥 Return Device</button><a href="/assignments/history" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ASSIGNMENT HISTORY -->
+            <div th:if="${activePage == 'history'}">
+                <div class="page-header"><h2>Assignment History</h2><p>Track all device assignments and returns.</p></div>
+                <div class="filter-bar"><form method="get" action="/assignments/history" class="filter-form"><div class="filter-group"><label>🔍 Search</label><input type="text" name="search" th:value="${searchValue}" placeholder="Search..."></div><div style="display: flex; gap: 10px;"><button type="submit" class="btn-filter">Apply Filters</button><a href="/assignments/history" class="btn-clear">Clear All</a></div></form></div>
+                <div class="table-header"><h3>Assignment History (<span th:text="${#lists.size(assignments)}">0</span> records)</h3><div style="display: flex; gap: 10px;"><a href="/assignments/assign" class="btn-add">📤 Assign Device</a><a href="/assignments/return" class="btn-add" style="background:#e67e22;">📥 Return Device</a></div></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>ID</th><th>Device</th><th>Asset Tag</th><th>Employee</th><th>Assigned Date</th><th>Returned Date</th><th>Condition (Assigned)</th><th>Condition (Returned)</th><th>Status</th><th>Notes</th></tr></thead>
+                        <tbody><tr th:each="a : ${assignments}"><td th:text="${a.id}">1</td><td th:text="${a.device.brand} + ' ' + ${a.device.model}">Dell Latitude</td><td th:text="${a.device.assetTag}">AST-001</td><td th:text="${a.employee.name}">John Doe</td><td th:text="${#temporals.format(a.assignedDate, 'yyyy-MM-dd HH:mm')}">-</td><td th:text="${a.returnedDate != null ? #temporals.format(a.returnedDate, 'yyyy-MM-dd HH:mm') : '-'}">-</td><td><span class="status-badge" th:text="${a.conditionWhenAssigned}">Good</span></td><td><span th:if="${a.conditionWhenReturned != null}" class="status-badge" th:text="${a.conditionWhenReturned}">-</span><span th:if="${a.conditionWhenReturned == null}">-</span></td><td><span th:if="${a.returnedDate == null}" class="status-badge status-assigned">Active</span><span th:if="${a.returnedDate != null}" class="status-badge status-available">Returned</span></td><td th:text="${a.notes}">-</td></tr><tr th:if="${assignments.empty}"><td colspan="10" style="text-align:center;padding:40px;">No assignment records found.</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ISSUE LIST -->
+            <div th:if="${activePage == 'issues'}">
+                <div class="page-header"><h2>Issue Reports</h2><p>View and manage all reported device issues.</p></div>
+                <div class="filter-bar"><form method="get" action="/issues" class="filter-form"><div class="filter-group"><label>🔍 Search</label><input type="text" name="search" th:value="${searchValue}" placeholder="Search..."></div><div style="display: flex; gap: 10px;"><button type="submit" class="btn-filter">Apply Filters</button><a href="/issues" class="btn-clear">Clear All</a></div></form></div>
+                <div class="table-header"><h3>All Issues (<span th:text="${#lists.size(issues)}">0</span> issues found)</h3><a href="/issues/report" class="btn-add">+ Report New Issue</a></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>ID</th><th>Device</th><th>Asset Tag</th><th>Reported By</th><th>Issue Date</th><th>Type</th><th>Priority</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody><tr th:each="issue : ${issues}"><td th:text="${issue.id}">1</td><td th:text="${issue.device != null ? issue.device.brand + ' ' + issue.device.model : '-'}">Dell Latitude</td><td th:text="${issue.device != null ? issue.device.assetTag : '-'}">AST-001</td><td th:text="${issue.employee != null ? issue.employee.name : '-'}">John Doe</td><td th:text="${#temporals.format(issue.issueDate, 'yyyy-MM-dd HH:mm')}">-</td><td><span class="status-badge" th:text="${issue.issueType}">Hardware</span></td><td><span class="priority-critical" th:if="${issue.priority == 'Critical'}" th:text="${issue.priority}">Critical</span><span class="priority-high" th:if="${issue.priority == 'High'}" th:text="${issue.priority}">High</span><span class="priority-medium" th:if="${issue.priority == 'Medium'}" th:text="${issue.priority}">Medium</span><span class="priority-low" th:if="${issue.priority == 'Low'}" th:text="${issue.priority}">Low</span></td><td th:text="${issue.issueDescription}">-</td><td><span class="status-badge" th:if="${issue.status == 'Reported'}" style="background:#fff3e0;color:#e65100;" th:text="${issue.status}">Reported</span><span class="status-badge" th:if="${issue.status == 'In Progress'}" style="background:#e3f2fd;color:#1565c0;" th:text="${issue.status}">In Progress</span><span class="status-badge" th:if="${issue.status == 'Resolved'}" style="background:#e8f5e9;color:#2e7d32;" th:text="${issue.status}">Resolved</span><span class="status-badge" th:if="${issue.status == 'Closed'}" style="background:#f5f5f5;color:#616161;" th:text="${issue.status}">Closed</span></td><td><a th:href="@{/issues/update/{id}(id=${issue.id})}" class="action-edit">Update</a></td></tr><tr th:if="${issues.empty}"><td colspan="10" style="text-align:center;padding:40px;">No issues found.</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- REPORT ISSUE -->
+            <div th:if="${activePage == 'report-issue'}">
+                <div class="page-header"><h2>Report Issue</h2><p>Report a problem with a device.</p></div>
+                <a href="/issues" class="btn-back">← Back to Issues</a>
+                <div class="form-container">
+                    <form method="post" th:action="@{/issues/save}">
+                        <div class="form-group"><label>Device:</label><select name="deviceId" required><option value="">-- Select Device --</option><option th:each="d : ${devices}" th:value="${d.id}" th:text="${d.assetTag} + ' - ' + ${d.brand} + ' ' + ${d.model}"></option></select></div>
+                        <div class="form-group"><label>Reported By:</label><select name="employeeId" required><option value="">-- Select Employee --</option><option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.name} + ' (' + ${e.employeeId} + ')'"></option></select></div>
+                        <div class="form-group"><label>Issue Type:</label><select name="issueType"><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Network">Network</option><option value="Physical Damage">Physical Damage</option><option value="Other">Other</option></select></div>
+                        <div class="form-group"><label>Priority:</label><select name="priority"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Critical">Critical</option></select></div>
+                        <div class="form-group"><label>Description:</label><textarea name="issueDescription" rows="4" required style="width:280px; height:100px;"></textarea></div>
+                        <div><button type="submit" class="btn-save">📝 Report Issue</button><a href="/issues" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- UPDATE ISSUE -->
+            <div th:if="${activePage == 'update-issue'}">
+                <div class="page-header"><h2>Update Issue</h2><p>Change issue status and add resolution notes.</p></div>
+                <a href="/issues" class="btn-back">← Back to Issues</a>
+                <div class="form-container">
+                    <div style="background:#f5f5f5; padding:15px; margin-bottom:20px; border-radius:8px;"><p><strong>Device:</strong> <span th:text="${issue.device != null ? issue.device.brand + ' ' + issue.device.model + ' (' + issue.device.assetTag + ')' : '-'}"></span></p><p><strong>Reported By:</strong> <span th:text="${issue.employee != null ? issue.employee.name : '-'}"></span></p><p><strong>Issue Date:</strong> <span th:text="${#temporals.format(issue.issueDate, 'yyyy-MM-dd HH:mm')}"></span></p><p><strong>Issue Type:</strong> <span th:text="${issue.issueType}"></span></p><p><strong>Priority:</strong> <span th:text="${issue.priority}"></span></p><p><strong>Description:</strong> <span th:text="${issue.issueDescription}"></span></p></div>
+                    <form method="post" th:action="@{/issues/update-status/{id}(id=${issue.id})}">
+                        <div class="form-group"><label>Status:</label><select name="status"><option value="Reported" th:selected="${issue.status == 'Reported'}">Reported</option><option value="In Progress" th:selected="${issue.status == 'In Progress'}">In Progress</option><option value="Resolved" th:selected="${issue.status == 'Resolved'}">Resolved</option><option value="Closed" th:selected="${issue.status == 'Closed'}">Closed</option></select></div>
+                        <div class="form-group"><label>Resolution Notes:</label><textarea name="resolutionNotes" rows="4" style="width:280px; height:100px;" th:text="${issue.resolutionNotes}"></textarea></div>
+                        <div><button type="submit" class="btn-save">💾 Update Issue</button><a href="/issues" class="btn-cancel">Cancel</a></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- REPORTS & ANALYTICS -->
+            <div th:if="${activePage == 'reports'}">
+                <div class="page-header"><h2>Reports & Analytics</h2><p>View inventory statistics, device distribution, and generate reports.</p></div>
+                <div class="stats-grid" style="margin-bottom:30px;"><div class="stat-card"><div class="stat-info"><h3>Total Devices</h3><div class="number" th:text="${totalDevices}">0</div></div><div class="stat-icon">💻</div></div><div class="stat-card"><div class="stat-info"><h3>Available Devices</h3><div class="number" th:text="${availableDevices}">0</div></div><div class="stat-icon">✅</div></div><div class="stat-card"><div class="stat-info"><h3>Assigned Devices</h3><div class="number" th:text="${assignedDevices}">0</div></div><div class="stat-icon">📌</div></div><div class="stat-card"><div class="stat-info"><h3>Under Repair</h3><div class="number" th:text="${underRepairDevices}">0</div></div><div class="stat-icon">🔧</div></div></div>
+                <div class="stats-grid" style="margin-bottom:30px;"><div class="stat-card"><div class="stat-info"><h3>Total Employees</h3><div class="number" th:text="${totalEmployees}">0</div></div><div class="stat-icon">👥</div></div><div class="stat-card"><div class="stat-info"><h3>Departments</h3><div class="number" th:text="${totalDepartments}">0</div></div><div class="stat-icon">🏢</div></div><div class="stat-card"><div class="stat-info"><h3>Open Issues</h3><div class="number" th:text="${openIssuesCount}">0</div></div><div class="stat-icon">⚠️</div></div><div class="stat-card"><div class="stat-info"><h3>Resolved Issues</h3><div class="number" th:text="${resolvedIssuesCount}">0</div></div><div class="stat-icon">✅</div></div></div>
+                <div class="table-header"><h3>📁 Export Reports</h3><div style="display:flex; gap:10px; flex-wrap:wrap;"><a href="/reports/export/devices" class="btn-export">📊 Export Devices</a><a href="/reports/export/employees" class="btn-export">📊 Export Employees</a><a href="/reports/export/departments" class="btn-export">📊 Export Departments</a><a href="/reports/export/assignments" class="btn-export">📊 Export Assignments</a><a href="/reports/export/issues" class="btn-export">📊 Export Issues</a></div></div>
+                <div class="table-header" style="margin-top:30px;"><h3>📊 Device Type Distribution</h3></div>
+                <div class="table-container"><table><thead><tr><th>Device Type</th><th>Count</th><th>Percentage</th><th>Status</th></tr></thead><tbody><tr th:each="type : ${deviceTypeDistribution}"><td th:text="${type[0]}">Laptop</td><td th:text="${type[1]}">5</td><td><div style="background:#e0e0e0; border-radius:10px; overflow:hidden; width:150px;"><div style="background:#e60000; width:50%; height:20px; text-align:center; color:white; font-size:11px; line-height:20px;" th:style="'width:' + ${type[2]} + '%;'" th:text="${type[2]} + '%'">50%</div></div></td><td><span th:if="${type[1] > 0}" class="status-badge status-available">Active</span><span th:if="${type[1] == 0}" class="status-badge status-retired">Empty</span></td></tr><tr th:if="${#lists.isEmpty(deviceTypeDistribution)}"><td colspan="4" style="text-align:center;padding:40px;">No device types found.</td></tr></tbody></table></div>
+                <div class="table-header" style="margin-top:30px;"><h3>📊 Device Status Distribution</h3></div>
+                <div class="table-container"><table><thead><tr><th>Status</th><th>Count</th><th>Percentage</th><th>Color Code</th></tr></thead><tbody><tr th:each="status : ${statusDistribution}"><td><span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(status[0])}" th:text="${status[0]}">Available</span></td><td th:text="${status[1]}">3</td><td><div style="background:#e0e0e0; border-radius:10px; overflow:hidden; width:150px;"><div style="background:#e60000; width:30%; height:20px; text-align:center; color:white; font-size:11px; line-height:20px;" th:style="'width:' + ${status[2]} + '%;'" th:text="${status[2]} + '%'">30%</div></div></td><td><div style="width:30px; height:20px; border-radius:5px;" th:style="'background:' + ${status[3]} + ';'"></div></td></tr><tr th:if="${#lists.isEmpty(statusDistribution)}"><td colspan="4" style="text-align:center;padding:40px;">No status data found.</td></tr></tbody></table></div>
+                <div class="table-header" style="margin-top:30px;"><h3>📊 Issue Priority Distribution</h3></div>
+                <div class="table-container"><table><thead><tr><th>Priority</th><th>Count</th><th>Percentage</th><th>Action Required</th></tr></thead><tbody><tr th:each="priority : ${priorityDistribution}"><td><span class="status-badge" th:classappend="'priority-' + ${#strings.toLowerCase(priority[0])}" th:text="${priority[0]}">Medium</span></td><td th:text="${priority[1]}">2</td><td th:text="${priority[2]} + '%'">20%</td><td><span th:if="${priority[0] == 'Critical'}" style="color:#c62828;">⚠️ Immediate action required</span><span th:if="${priority[0] == 'High'}" style="color:#e65100;">⚠️ High priority</span><span th:if="${priority[0] == 'Medium'}" style="color:#1565c0;">⚡ Normal priority</span><span th:if="${priority[0] == 'Low'}" style="color:#2e7d32;">✓ Low priority</span></td></tr><tr th:if="${#lists.isEmpty(priorityDistribution)}"><td colspan="4" style="text-align:center;padding:40px;">No issues found.</td></tr></tbody></table></div>
+                <div class="table-header" style="margin-top:30px;"><h3>🔄 Recent Activity</h3><a href="/assignments/history" class="btn-add" style="background:#666; padding:8px 15px;">View All</a></div>
+                <div class="table-container"><table><thead><tr><th>Date</th><th>Activity Type</th><th>Description</th><th>Status</th></tr></thead><tbody><tr th:each="activity : ${recentActivities}" th:if="${activityStat.index < 10}"><td th:text="${activity.date}">2026-04-26 10:00</td><td><span th:if="${activity.type == 'ASSIGN'}" class="status-badge status-assigned">📤 Device Assigned</span><span th:if="${activity.type == 'RETURN'}" class="status-badge status-available">📥 Device Returned</span><span th:if="${activity.type == 'ADD'}" class="status-badge status-available">➕ New Device Added</span><span th:if="${activity.type == 'ISSUE'}" class="status-badge status-repair">⚠️ Issue Reported</span></td><td th:text="${activity.description}">-</td><td><span th:if="${activity.status == 'SUCCESS'}" class="status-badge status-available">Completed</span><span th:if="${activity.status == 'PENDING'}" class="status-badge status-repair">Pending</span></td></tr><tr th:if="${#lists.isEmpty(recentActivities)}"><td colspan="4" style="text-align:center;padding:40px;">No recent activity found.</td></tr></tbody></table></div>
+                <div style="margin-top:30px; background:white; border-radius:12px; padding:20px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.1);"><p style="color:#666; font-size:0.8rem;">📅 Report generated on: <span th:text="${#dates.format(#dates.createNow(), 'yyyy-MM-dd HH:mm:ss')}"></span></p><p style="color:#999; font-size:0.75rem; margin-top:10px;">&copy; 2026 Airtel Inventory System - All Rights Reserved</p></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>AIRTEL</h3><p>End User Equipment Tracking System</p></div>
+            <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/devices">📱 Devices</a></li><li><a href="/employees">👥 Employees</a></li><li><a href="/departments">🏢 Departments</a></li><li><a href="/assignments/history">📜 Assignments</a></li><li><a href="/issues">⚠️ Issues</a></li><li><a href="/reports">📊 Reports</a></li></ul></div>
+            <div class="footer-section"><h3>Contact</h3>
+            <ul>
+				<li>📧 24rp06040@stud.rp.ac.rw</li>
+				<li>📧 24rp06906@stud.rp.ac.rw</li>
+            <li>📞 +250 7911 69 631</li>
+            <li>📞 +250 788 272 251</li>
+            
+            <li>📍 Kigali, Rwanda</li></ul></div>
+            <div class="footer-section"><h3>Working Hours</h3><ul><li>Monday - Friday: 8:00 - 17:00</li><li>Saturday: 9:00 - 13:00</li><li>Sunday: Closed</li></ul></div>
+        </div>
+         <div class="footer-bottom">
+            <p>&copy; 2026 Airtel Rwanda. All Rights Reserved. | End User Equipment Tracking System</p>
+            <p style="margin-top: 10px;">Developed by: 24RP06040 & 24RP06906</p>
+        </div>
+    </footer>
+</body>
+</html>

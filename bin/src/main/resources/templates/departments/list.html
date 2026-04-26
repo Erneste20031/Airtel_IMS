@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Departments - Airtel Inventory</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background-color: #f5f5f5; }
+        .header { background-color: #e60000; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #e60000; color: white; }
+        .btn { padding: 5px 10px; text-decoration: none; border-radius: 3px; margin: 2px; display: inline-block; }
+        .btn-add { background-color: green; color: white; padding: 10px 15px; display: inline-block; margin-bottom: 20px; }
+        .btn-edit { background-color: blue; color: white; }
+        .btn-delete { background-color: red; color: white; }
+        .btn-back { background-color: gray; color: white; padding: 10px 15px; display: inline-block; margin-bottom: 20px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header"><h1>Department Management</h1></div>
+    <a href="/" class="btn-back">Dashboard</a>
+    <a href="/departments/add" class="btn-add">+ Add New Department</a>
+    
+    <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Location</th><th>Actions</th></tr></thead>
+        <tbody>
+            <tr th:each="dept : ${departments}">
+                <td th:text="${dept.id}">1</td>
+                <td th:text="${dept.name}">IT Dept</td>
+                <td th:text="${dept.location}">Head Office</td>
+                <td>
+                    <a th:href="@{/departments/edit/{id}(id=${dept.id})}" class="btn btn-edit">Edit</a>
+                    <a th:href="@{/departments/delete/{id}(id=${dept.id})}" class="btn btn-delete" onclick="return confirm('Delete?')">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

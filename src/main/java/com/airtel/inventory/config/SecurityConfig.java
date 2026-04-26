@@ -4,6 +4,7 @@ import com.airtel.inventory.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
@@ -37,7 +38,7 @@ public class SecurityConfig {
             .and()
             .logout()
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/")  // Changed from "/login?logout=true" to "/" (homepage)
+                .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "remember-me")
                 .clearAuthentication(true)
@@ -51,6 +52,13 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // For production, change to BCryptPasswordEncoder
         return NoOpPasswordEncoder.getInstance();
+    }
+    
+    // Add this method to configure authentication with your UserDetailsService
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 }

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Devices - Airtel Inventory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f7fb; }
+        
+        /* Top Navigation */
+        .top-nav {
+            background: #e60000;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo h2 { color: white; font-size: 1.5rem; font-weight: 700; }
+        .logo p { color: rgba(255,255,255,0.85); font-size: 0.7rem; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 25px; color: white; }
+        .logout-btn { color: white; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 25px; text-decoration: none; }
+        .logout-btn:hover { background: rgba(0,0,0,0.5); }
+        
+        /* Main Content */
+        .main-content { padding: 25px 35px; }
+        .page-header { margin-bottom: 25px; }
+        .page-header h2 { font-size: 1.6rem; font-weight: 600; color: #1a1a1a; }
+        .page-header p { color: #888; font-size: 0.85rem; }
+        
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .filter-form { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 150px; }
+        .filter-group label { display: block; font-size: 0.75rem; color: #666; margin-bottom: 5px; }
+        .filter-group input, .filter-group select {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;
+            font-family: 'Poppins', sans-serif; font-size: 0.85rem;
+        }
+        .btn-filter { background: #e60000; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-clear { background: #666; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; }
+        
+        /* Table */
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-add { background: #1a1a1a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; }
+        .btn-add:hover { background: #e60000; }
+        .table-container { background: white; border-radius: 12px; overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f8f9fa; padding: 14px 12px; text-align: left; border-bottom: 1px solid #e8e8e8; font-size: 0.85rem; }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 0.85rem; }
+        tr:hover { background: #fafafa; }
+        
+        /* Status Badges */
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 500; }
+        .status-available { background: #e8f5e9; color: #2e7d32; }
+        .status-assigned { background: #e3f2fd; color: #1565c0; }
+        .status-repair { background: #fff3e0; color: #e65100; }
+        
+        /* Action Buttons */
+        .action-edit { color: #1565c0; text-decoration: none; margin-right: 12px; }
+        .action-delete { color: #c62828; text-decoration: none; }
+        .action-edit:hover, .action-delete:hover { text-decoration: underline; }
+        
+        /* Footer */
+        .footer { background: #1a1a1a; color: white; padding: 30px 30px 20px; margin-top: 40px; text-align: center; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <div class="logo"><h2>AIRTEL</h2><p>Inventory Management System</p></div>
+        <div class="user-info">
+            <span>👋 <span th:text="${#authentication.name}">User</span></span>
+            <a href="/logout" class="logout-btn">🚪 Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Device Management</h2>
+            <p>View, edit, and manage all devices in inventory.</p>
+        </div>
+        
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <form method="get" action="/devices" class="filter-form">
+                <div class="filter-group">
+                    <label>🔍 Search</label>
+                    <input type="text" name="search" th:value="${searchValue}" placeholder="Search by Asset Tag, Serial, Brand, Model...">
+                </div>
+                <div class="filter-group">
+                    <label>📌 Status</label>
+                    <select name="status">
+                        <option value="all">All Status</option>
+                        <option th:each="s : ${deviceStatuses}" th:value="${s.id}" th:text="${s.status}"></option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>💻 Device Type</label>
+                    <select name="type">
+                        <option value="all">All Types</option>
+                        <option th:each="t : ${deviceTypes}" th:value="${t.id}" th:text="${t.name}"></option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>📊 Condition</label>
+                    <select name="condition">
+                        <option value="all">All Conditions</option>
+                        <option>New</option><option>Good</option><option>Fair</option><option>Poor</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-filter">Apply Filters</button>
+                    <a href="/devices" class="btn-clear">Clear All</a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="table-header">
+            <h3>All Devices (<span th:text="${#lists.size(devices)}">0</span> devices found)</h3>
+            <a href="/devices/add" class="btn-add">+ Add New Device</a>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Asset Tag</th><th>Serial Number</th><th>Brand</th><th>Model</th>
+                        <th>Type</th><th>Condition</th><th>Status</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="device : ${devices}">
+                        <td th:text="${device.id}">1</td>
+                        <td th:text="${device.assetTag}">AST-001</td>
+                        <td th:text="${device.serialNumber}">SN123</td>
+                        <td th:text="${device.brand}">Dell</td>
+                        <td th:text="${device.model}">Latitude</td>
+                        <td th:text="${device.deviceType.name}">Laptop</td>
+                        <td>
+                            <span th:if="${device.deviceCondition == 'New'}" class="status-badge status-available">New</span>
+                            <span th:if="${device.deviceCondition == 'Good'}" class="status-badge status-assigned">Good</span>
+                            <span th:if="${device.deviceCondition == 'Fair'}" class="status-badge status-repair">Fair</span>
+                            <span th:if="${device.deviceCondition == 'Poor'}" class="status-badge status-repair">Poor</span>
+                        </td>
+                        <td>
+                            <span th:if="${device.status.status == 'Available'}" class="status-badge status-available">Available</span>
+                            <span th:if="${device.status.status == 'Assigned'}" class="status-badge status-assigned">Assigned</span>
+                            <span th:if="${device.status.status == 'Under Repair'}" class="status-badge status-repair">Under Repair</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/devices/edit/{id}(id=${device.id})}" class="action-edit">Edit</a>
+                            <a th:href="@{/devices/delete/{id}(id=${device.id})}" class="action-delete" onclick="return confirm('Delete this device?')">Delete</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${devices.empty}">
+                        <td colspan="9" style="text-align:center;padding:40px;">No devices found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p>&copy; 2026 Airtel Rwanda. All Rights Reserved. | End User Equipment Tracking System</p>
+    </footer>
+</body>
+</html>
