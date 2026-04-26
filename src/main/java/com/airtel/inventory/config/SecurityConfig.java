@@ -1,5 +1,4 @@
 package com.airtel.inventory.config;
-
 import com.airtel.inventory.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +13,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
@@ -22,31 +20,31 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-                .antMatchers("/", "/index", "/index.html").permitAll()
-                .antMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
-                .antMatchers("/login", "/logout").permitAll()
-                .anyRequest().authenticated()
+            .antMatchers("/", "/index", "/index.html").permitAll()
+            .antMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
+            .antMatchers("/login", "/logout").permitAll()
+            .anyRequest().authenticated()
             .and()
             .formLogin()
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/login?error=true")
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .permitAll()
+            .loginPage("/login")
+            .loginProcessingUrl("/login")
+            .defaultSuccessUrl("/dashboard", true)
+            .failureUrl("/login?error=true")
+            .usernameParameter("username")
+            .passwordParameter("password")
+            .permitAll()
             .and()
             .logout()
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID", "remember-me")
-                .clearAuthentication(true)
-                .permitAll()
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/")
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID", "remember-me")
+            .clearAuthentication(true)
+            .permitAll()
             .and()
             .csrf()
-                .disable();
-        
+            .disable();
+
         return http.build();
     }
 
@@ -55,9 +53,8 @@ public class SecurityConfig {
         // For production, change to BCryptPasswordEncoder
         return NoOpPasswordEncoder.getInstance();
     }
-    
-    // Add this method to configure authentication with your UserDetailsService
-    @Autowired
+
+    // Remove @Autowired - Spring Security calls this automatically
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
